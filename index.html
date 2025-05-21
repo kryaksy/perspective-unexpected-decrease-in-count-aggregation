@@ -53,14 +53,11 @@
       { FieldA: ["A-2"], FieldB: ["B-2"], FieldC: ["C"], index: ["6"] },
     ];
 
-    await INSERTS.reduce(
-      (acc, INSERT) =>
-        acc.then(async () => {
-          // Added a delay here for better visualization of the issue
-          await new Promise((r) => setTimeout(r, 1000));
-          await table.update(INSERT);
-        }),
-      Promise.resolve()
-    );
+    for (const INSERT of INSERTS) {
+      // Added a delay here for better visualization of the issue
+      // Does not have an effect on the issue
+      await new Promise((r) => setTimeout(r, 1000));
+      await table.update(INSERT);
+    }
   </script>
 </html>
