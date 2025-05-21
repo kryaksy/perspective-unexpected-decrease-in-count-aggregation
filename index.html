@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      perspective-viewer {
+        position: absolute;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <perspective-viewer></perspective-viewer>
+  </body>
+
+  <script type="module">
+    import "https://cdn.jsdelivr.net/npm/@finos/perspective-viewer/dist/cdn/perspective-viewer.js";
+    import "https://cdn.jsdelivr.net/npm/@finos/perspective-viewer-datagrid/dist/cdn/perspective-viewer-datagrid.js";
+    import "https://cdn.jsdelivr.net/npm/@finos/perspective-viewer-d3fc/dist/cdn/perspective-viewer-d3fc.js";
+    import perspective from "https://cdn.jsdelivr.net/npm/@finos/perspective/dist/cdn/perspective.js";
+
+    const worker = await perspective.worker();
+    const viewer = document.getElementsByTagName("perspective-viewer")[0];
+    const table = await worker.table(
+      {
+        FieldA: "string",
+        FieldB: "string",
+        FieldC: "string",
+        index: "string",
+      },
+      { index: "index" }
+    );
+    await viewer.load(table);
+    await viewer.restore({
+      columns: ["FieldA"],
+      split_by: [],
+      aggregates: { FieldA: "count" },
+      group_by: ["FieldC"],
+      sort: [],
+      filter: [["FieldB", "not in", ["B-1", "B-2"]]],
+    });
+
+    const INSERTS = [
+      {
+        FieldA: ["A-1", "A-2", "A-3"],
+        FieldB: ["B-1", "B-2", "B-3"],
+        FieldC: ["C", "C", "C"],
+        index: ["1", "2", "3"],
+      },
+      { FieldA: ["A-2"], FieldB: ["B-2"], FieldC: ["C"], index: ["4"] },
+      { FieldA: ["A-2"], FieldB: ["B-2"], FieldC: ["C"], index: ["5"] },
+      { FieldA: ["A-2"], FieldB: ["B-2"], FieldC: ["C"], index: ["6"] },
+    ];
+
+    await INSERTS.reduce(
+      (acc, INSERT) =>
+        acc.then(async () => {
+          // Added a delay here for better visualization of the issue
+          await new Promise((r) => setTimeout(r, 1000));
+          await table.update(INSERT);
+        }),
+      Promise.resolve()
+    );
+  </script>
+</html>
